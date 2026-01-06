@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Self Help Group App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    margin: 0;
+}
+header {
+    background: #2c7be5;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+nav {
+    background: #1b4f72;
+    padding: 10px;
+    text-align: center;
+}
+nav button {
+    margin: 5px;
+    padding: 10px;
+    background: white;
+    border: none;
+    cursor: pointer;
+}
+section {
+    display: none;
+    padding: 20px;
+}
+section.active {
+    display: block;
+}
+input, button {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+table, th, td {
+    border: 1px solid #ccc;
+}
+th, td {
+    padding: 8px;
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Self Help Group Savings App</h2>
+</header>
+
+<nav>
+<button onclick="showSection('members')">Members</button>
+<button onclick="showSection('contributions')">Contributions</button>
+<button onclick="showSection('loans')">Loans</button>
+<button onclick="showSection('reports')">Reports</button>
+</nav>
+
+<!-- MEMBERS -->
+<section id="members" class="active">
+<h3>Register Member</h3>
+<input id="memberName" placeholder="Full Name">
+<button onclick="addMember()">Add Member</button>
+
+<h4>Members List</h4>
+<ul id="memberList"></ul>
+</section>
+
+<!-- CONTRIBUTIONS -->
+<section id="contributions">
+<h3>Add Contribution</h3>
+<select id="contribMember"></select>
+<input id="contribAmount" type="number" placeholder="Amount">
+<button onclick="addContribution()">Save Contribution</button>
+
+<table>
+<tr><th>Member</th><th>Amount</th></tr>
+<tbody id="contribTable"></tbody>
+</table>
+</section>
+
+<!-- LOANS -->
+<section id="loans">
+<h3>Apply Loan</h3>
+<select id="loanMember"></select>
+<input id="loanAmount" type="number" placeholder="Loan Amount">
+<button onclick="applyLoan()">Apply</button>
+
+<table>
+<tr><th>Member</th><th>Amount</th><th>Status</th></tr>
+<tbody id="loanTable"></tbody>
+</table>
+</section>
+
+<!-- REPORTS -->
+<section id="reports">
+<h3>Group Report</h3>
+<p><b>Total Savings:</b> KES <span id="totalSavings">0</span></p>
+<p><b>Total Loans:</b> KES <span id="totalLoans">0</span></p>
+</section>
+
+<script>
+let members = JSON.parse(localStorage.getItem("members")) || [];
+let contributions = JSON.parse(localStorage.getItem("contributions")) || [];
+let loans = JSON.parse(localStorage.getItem("loans")) || [];
+
+function showSection(id) {
+    document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+function addMember() {
+    let name = document.getElementById("memberName").value;
+    if (!name) return alert("Enter name");
+    members.push(name);
+    localStorage.setItem("members", JSON.stringify(members));
+    document.getElementById("memberName").value = "";
+    loadMembers();
+}
+
+function loadMembers() {
+    let list = document.getElementById("memberList");
+    let selects = [document.getElementById("contribMember"), document.getElementById("loanMember")];
+    list.innerHTML = "";
+    selects.forEach(s => s.innerHTML = "");
+    members.forEach(m => {
+        list.innerHTML += `<li>${m}</li>`;
+        selects.forEach(s => s.innerHTML += `<option>${m}</option>`);
+    });
+}
+
+function addContribution() {
+    let member = contribMember.value;
+    let amount = Number(contribAmount.value);
+    if (!amount) return alert("Enter amount");
+    contributions.push({member, amount});
+    localStorage.setItem("contributions", JSON.stringify(contributions));
+    contribAmount.value = "";
+    loadContributions();
+}
+
+function loadContributions() {
+    let table = document.getElementById("contribTable");
+    table.innerHTML = "";
+    contributions.forEach(c => {
+        table.innerHTML += `<tr><td>${c.member}</td><td>${c.amount}</td></tr>`;
+    });
+    updateReports();
+}
+
+function applyLoan() {
+    let member = loanMember.value;
+    let amount = Number(loanAmount.value);
+    if (!amount) return alert("Enter loan amount");
+    loans.push({member, amount, status: "Pending"});
+    localStorage.setItem("loans", JSON.stringify(loans));
+    loanAmount.value = "";
+    loadLoans();
+}
+
+function loadLoans() {
+    let table = document.getElementById("loanTable");
+    table.innerHTML = "";
+    loans.forEach(l => {
+        table.innerHTML += `<tr><td>${l.member}</td><td>${l.amount}</td><td>${l.status}</td></tr>`;
+    });
+    updateReports();
+}
+
+function updateReports() {
+    let totalSavings = contributions.reduce((s,c)=>s+c.amount,0);
+    let totalLoans = loans.reduce((s,l)=>s+l.amount,0);
+    totalSavingsSpan.innerText = totalSavings;
+    totalLoansSpan.innerText = totalLoans;
+}
+
+loadMembers();
+loadContributions();
+loadLoans();
+</script>
+
+</body>
+</html>
